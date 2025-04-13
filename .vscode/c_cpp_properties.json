@@ -10,6 +10,8 @@
             "includePath": [
                 "/home/fractal/git/grove_sensor_arduino_nano_esp32/include",
                 "/home/fractal/git/grove_sensor_arduino_nano_esp32/src",
+                "/home/fractal/git/grove_sensor_arduino_nano_esp32/.pio/libdeps/arduino_nano_esp32/Grove - Laser PM2.5 Sensor HM3301/src",
+                "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "/home/fractal/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                 "/home/fractal/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
                 "/home/fractal/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include/esp_additions/freertos",
@@ -241,7 +243,6 @@
                 "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
-                "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 ""
             ],
             "browse": {
@@ -249,6 +250,8 @@
                 "path": [
                     "/home/fractal/git/grove_sensor_arduino_nano_esp32/include",
                     "/home/fractal/git/grove_sensor_arduino_nano_esp32/src",
+                    "/home/fractal/git/grove_sensor_arduino_nano_esp32/.pio/libdeps/arduino_nano_esp32/Grove - Laser PM2.5 Sensor HM3301/src",
+                    "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "/home/fractal/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                     "/home/fractal/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
                     "/home/fractal/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include/esp_additions/freertos",
@@ -480,7 +483,6 @@
                     "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
-                    "/home/fractal/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     ""
                 ]
             },
