@@ -75,6 +75,9 @@ err_t parse_result_value(uint8_t *data)
 void setup()
 {
   SERIAL.begin(115200);
+  // wait for serial to come online
+  while (!Serial)
+    ;
   delay(100);
   SERIAL.println("Serial start");
   if (sensor.init())
