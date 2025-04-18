@@ -53,6 +53,15 @@ pio run -e arduino_nano_esp32 -t build
 pio run -e arduino_nano_esp32 -t upload
 ```
 
+### Run Tests
+
+```bash
+# Run test locally on your desktop
+pio test -e desktop
+# Run test on the device
+pio test -e arduino_nano_esp32
+```
+
 ## Documentation
 
 ### Software Architecture

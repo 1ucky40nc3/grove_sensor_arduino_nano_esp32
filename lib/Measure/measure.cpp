@@ -1,5 +1,4 @@
 #include <string>
-#include "serialize.h"
 #include "measure.h"
 
 using namespace std;
