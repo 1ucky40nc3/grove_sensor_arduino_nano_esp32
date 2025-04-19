@@ -4,6 +4,7 @@ using namespace std;
 #include "service.h"
 #include "controller.h"
 #include "adapter.h"
+#include "customQueue.h"
 
 void test_hm330x_measurement()
 {
@@ -48,6 +49,17 @@ void test_json_data_sender_adapter()
     data.pm_100_ae = 0;
     HM33XMeasurement measurement(data);
     adapter.send(measurement);
+}
+
+void test_sequenced_queue()
+{
+    SequencedQueue<string> sequencedQueue;
+    TEST_ASSERT_TRUE(sequencedQueue.isEmpty());
+    sequencedQueue.add("item");
+    TEST_ASSERT_FALSE(sequencedQueue.isEmpty());
+    const string item = sequencedQueue.pop();
+    TEST_ASSERT_TRUE(sequencedQueue.isEmpty());
+    TEST_ASSERT_EQUAL_STRING("item", item.c_str());
 }
 
 void setUp() {}

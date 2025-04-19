@@ -75,7 +75,10 @@ Software architecture patterns and principles:
 
 ```mermaid
 classDiagram
-
+    class IJsonSerializable {
+        <<interface>>
+        + toJson(): string
+    }
     class HM330XData {
         + pm_010_spm: int
         + pm_025_spm: int
@@ -125,13 +128,10 @@ classDiagram
     class JsonDataSenderController {
         + send(data: string): void
     }
-    class IJsonSerializable {
-        <<interface>>
-        + toJson(): string
-    }
     class JsonDataSenderAdapter {
         + send(send: IJsonSerializable): void
     }
+    AbstractMeasurement --|> IJsonSerializable
     HM330XMeasurement --|> AbstractMeasurement
     SequentialQueue --|> IQueue
     HM3301V1SensorReader --|> SensorReader
