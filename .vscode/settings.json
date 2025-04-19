@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "string": "cpp",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "type_traits": "cpp"
     }
 }

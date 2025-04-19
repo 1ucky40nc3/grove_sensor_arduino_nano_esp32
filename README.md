@@ -75,23 +75,25 @@ Software architecture patterns and principles:
 
 ```mermaid
 classDiagram
-    class IJsonSerializable {
-        <<interface>>
-        + toJson(): string
-    }
-    class HM3301V1Data {
+
+    class HM330XData {
         + pm_010_spm: int
         + pm_025_spm: int
         + pm_100_spm: int
         + pm_010_ae: int
         + pm_025_ae: int
         + pm_100_ae: int
-        + toJson(): string
     }
-    class Measurement~T: IJsonSerializable~{
+    class AbstractMeasurement~T~{
         + sensor: string
         + version: string
         + data: ~T~
+        + toJson(): string
+    }
+    class HM330XMeasurement~HM330XData~{
+        + sensor: string
+        + version: string
+        + data: ~HM330XData~
         + toJson(): string
     }
     class IQueue~T~ {
@@ -109,10 +111,10 @@ classDiagram
         + version: string
         + read(): Measurement~T~
     }
-    class HM3301V1SensorReader~HM3301V1Data~ {
+    class HM3301V1SensorReader~HM330XData~ {
         + sensor: string
         + version: string
-        + read(): Measurement~HM3301V1Data~
+        + read(): Measurement~HM330XData~
     }
     class IJsonDataSender {
         + send(data: string): void
@@ -123,11 +125,14 @@ classDiagram
     class JsonDataSenderController {
         + send(data: string): void
     }
+    class IJsonSerializable {
+        <<interface>>
+        + toJson(): string
+    }
     class JsonDataSenderAdapter {
         + send(send: IJsonSerializable): void
     }
-    HM3301V1Data --|> IJsonSerializable
-    Measurement --|> IJsonSerializable
+    HM330XMeasurement --|> AbstractMeasurement
     SequentialQueue --|> IQueue
     HM3301V1SensorReader --|> SensorReader
     JsonDataSenderService --|> IJsonDataSender
@@ -141,7 +146,7 @@ The Arduino sketch initializes a system for reading data from an HM3301 Grove - 
 sequenceDiagram
     participant Arduino as Arduino Board
     participant SensorReader as HM3301V1SensorReader
-    participant Queue as SequentialQueue<Measurement<HM3301V1Data>>
+    participant Queue as SequentialQueue<Measurement<HM330XData>>
     participant Adapter as JsonDataSenderAdapter
     participant Controller as JsonDataSenderController
     participant Service as JsonDataSenderService
@@ -158,11 +163,11 @@ sequenceDiagram
     Note over Arduino: loop()
 
     Arduino ->> SensorReader: read()
-    SensorReader -->> Arduino: Measurement<HM3301V1Data>
-    Arduino ->> Queue: add(Measurement<HM3301V1Data>)
+    SensorReader -->> Arduino: Measurement<HM330XData>
+    Arduino ->> Queue: add(Measurement<HM330XData>)
     Arduino ->> Queue: pop()
-    Queue -->> Arduino: Measurement<HM3301V1Data>
-    Arduino ->> Adapter: send(Measurement<HM3301V1Data>)
+    Queue -->> Arduino: Measurement<HM330XData>
+    Arduino ->> Adapter: send(Measurement<HM330XData>)
     Adapter ->> Controller: send(JSON string)
     Controller ->> Service: send(JSON String)
     Service ->> WebService: Send JSON Data
