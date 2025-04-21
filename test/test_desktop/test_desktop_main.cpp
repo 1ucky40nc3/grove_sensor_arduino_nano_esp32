@@ -73,6 +73,9 @@ int main()
     // Run the tests
     RUN_TEST(test_hm330x_measurement);
     RUN_TEST(test_json_data_sender_service);
+    RUN_TEST(test_json_data_sender_controller);
+    RUN_TEST(test_json_data_sender_adapter);
+    RUN_TEST(test_sequenced_queue);
 
     UNITY_END(); // End Unity
 
