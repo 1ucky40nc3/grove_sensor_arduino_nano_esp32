@@ -5,6 +5,7 @@ using namespace std;
 #include "controller.h"
 #include "adapter.h"
 #include "customQueue.h"
+#include "sensor.h"
 
 void test_hm330x_measurement()
 {
@@ -47,8 +48,12 @@ void test_json_data_sender_adapter()
     data.pm_010_ae = 0;
     data.pm_025_ae = 0;
     data.pm_100_ae = 0;
-    HM33XMeasurement measurement(data);
-    adapter.send(measurement);
+    Measurement<HM330XData> measurement;
+    measurement.sensor = "sensor";
+    measurement.version = "version";
+    measurement.data = data;
+    JsonSerializableHM330XMeasurement serializable(measurement);
+    adapter.send(serializable);
 }
 
 void test_sequenced_queue()
@@ -60,6 +65,11 @@ void test_sequenced_queue()
     const string item = sequencedQueue.pop();
     TEST_ASSERT_TRUE(sequencedQueue.isEmpty());
     TEST_ASSERT_EQUAL_STRING("item", item.c_str());
+}
+
+void test_is_hm330x_init_success()
+{
+    TEST_ASSERT_TRUE(isHM330XInitSuccess(0));
 }
 
 void setUp() {}
