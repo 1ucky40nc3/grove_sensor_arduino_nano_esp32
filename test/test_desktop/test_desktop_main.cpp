@@ -6,8 +6,9 @@ using namespace std;
 #include "adapter.h"
 #include "customQueue.h"
 #include "sensor.h"
+#include "sensor.cpp"
 
-void test_hm330x_measurement()
+void test_hm330x_serializable_measurement()
 {
     HM330XData data;
     data.pm_010_spm = 0;
@@ -16,9 +17,11 @@ void test_hm330x_measurement()
     data.pm_010_ae = 0;
     data.pm_025_ae = 0;
     data.pm_100_ae = 0;
-    HM33XMeasurement measurement(data);
-    const char *expected = "{\"sensor\":\"HM33X\",\"version\":\"v1.0\",\"data\":{\"pm_010_spm\":0,\"pm_025_spm\":0,\"pm_100_spm\":0,\"pm_010_ae\":0,\"pm_025_ae\":0,\"pm_100_ae\":0}}";
-    TEST_ASSERT_EQUAL_STRING(expected, measurement.toJson().c_str());
+    Description desc = {"HM330X", "v1.0"};
+    Measurement<HM330XData> measurement = {desc, data};
+    JsonSerializableHM330XMeasurement serializable(measurement);
+    const char *expected = "{\"desc\":{\"sensor\":\"HM330X\",\"version\":\"v1.0\"},\"data\":{\"pm_010_spm\":0,\"pm_025_spm\":0,\"pm_100_spm\":0,\"pm_010_ae\":0,\"pm_025_ae\":0,\"pm_100_ae\":0}}";
+    TEST_ASSERT_EQUAL_STRING(expected, serializable.toJson().c_str());
 }
 
 void test_json_data_sender_service()
@@ -48,10 +51,12 @@ void test_json_data_sender_adapter()
     data.pm_010_ae = 0;
     data.pm_025_ae = 0;
     data.pm_100_ae = 0;
+    Description desc;
+    desc.sensor = "sensor";
+    desc.version = "version";
     Measurement<HM330XData> measurement;
-    measurement.sensor = "sensor";
-    measurement.version = "version";
     measurement.data = data;
+    measurement.desc = desc;
     JsonSerializableHM330XMeasurement serializable(measurement);
     adapter.send(serializable);
 }
@@ -67,9 +72,11 @@ void test_sequenced_queue()
     TEST_ASSERT_EQUAL_STRING("item", item.c_str());
 }
 
-void test_is_hm330x_init_success()
+void test_convert_hm330x_error_code()
 {
-    TEST_ASSERT_TRUE(isHM330XInitSuccess(0));
+    TEST_ASSERT_TRUE(convertHM330XErrorCode(NO_ERROR) == NO_ERR);
+    TEST_ASSERT_TRUE(convertHM330XErrorCode(ERROR_COMM) == ERR_CONN);
+    TEST_ASSERT_TRUE(convertHM330XErrorCode(ERROR_OTHERS) == ERR_OTHER);
 }
 
 void setUp() {}
@@ -81,7 +88,7 @@ int main()
     UNITY_BEGIN(); // Initialize Unity
 
     // Run the tests
-    RUN_TEST(test_hm330x_measurement);
+    RUN_TEST(test_hm330x_serializable_measurement);
     RUN_TEST(test_json_data_sender_service);
     RUN_TEST(test_json_data_sender_controller);
     RUN_TEST(test_json_data_sender_adapter);

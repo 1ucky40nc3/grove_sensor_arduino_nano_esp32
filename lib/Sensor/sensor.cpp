@@ -1,38 +1,45 @@
 #include <Arduino.h>
 #include <Seeed_HM330X.h>
 #include "sensor.h"
+#include "errno.h"
 
 using namespace std;
 
-bool isHM330XInitSuccess(HM330XErrorCode error)
+err_sensor_t convertHM330XErrorCode(HM330XErrorCode error)
 {
     switch (error)
     {
     case NO_ERROR:
-        return true;
+        return NO_ERR;
+    case ERROR_COMM:
+        return ERR_CONN;
+    case ERROR_OTHERS:
+        return ERR_OTHER;
     default:
-        return false;
+        return ERR_UNK;
     }
 }
 
-bool HM330XSensorReader::init()
+err_sensor_t HM330XSensorReader::init()
 {
     const HM330XErrorCode error = this->sensor.init();
-    return isHM330XInitSuccess(error);
+    return convertHM330XErrorCode(error);
 }
 
-err_t HM330XSensorReader::read_measurement()
+err_sensor_t HM330XSensorReader::read_measurement()
 {
     if (this->sensor.read_sensor_value(this->buf, 29))
     {
         Serial.println("HM330X read result failed!!!");
+        return ERR_READ;
     }
+    return NO_ERR;
 }
 
-err_t HM330XSensorReader::parse_measurement()
+err_sensor_t HM330XSensorReader::parse_measurement()
 {
     if (NULL == this->buf)
-        return ERROR_PARAM;
+        return ERR_NULL;
 
     auto parse = [](int i, uint8_t *buf)
     { return (uint16_t)buf[i * 2] << 8 | buf[i * 2 + 1]; };
@@ -50,6 +57,7 @@ err_t HM330XSensorReader::parse_measurement()
     measurement.data = data;
     measurement.desc = this->desc;
     this->measurement = measurement;
+    return NO_ERR;
 }
 
 Measurement<HM330XData> HM330XSensorReader::get_measurement()
