@@ -8,6 +8,25 @@
 
 using namespace std;
 
+template <typename T>
+class AbstractSensor
+{
+public:
+    virtual err_sensor_t init() = 0;
+    virtual err_sensor_t read_sensor_value(T *data) = 0;
+    virtual ~AbstractSensor() = default;
+};
+
+class HM330XSensor : public AbstractSensor<uint8_t>
+{
+private:
+    HM330X sensor;
+
+public:
+    err_sensor_t init() override;
+    err_sensor_t read_sensor_value(uint8_t *data) override;
+};
+
 template <typename T, typename S>
 class AbstractSensorReader
 {
@@ -25,14 +44,14 @@ public:
     virtual ~AbstractSensorReader() = default;
 };
 
-class HM330XSensorReader : public AbstractSensorReader<HM330XData, HM330X>
+class HM330XSensorReader : public AbstractSensorReader<HM330XData, HM330XSensor>
 {
 private:
     uint8_t buf[30];
     Measurement<HM330XData> measurement;
 
 public:
-    HM330XSensorReader(HM330X sensor) : AbstractSensorReader(sensor, {"HM330X", "v1"}) {};
+    HM330XSensorReader(HM330XSensor sensor) : AbstractSensorReader(sensor, {"HM330X", "v1"}) {};
     err_sensor_t init() override;
     err_sensor_t parse_measurement() override;
     err_sensor_t read_measurement() override;

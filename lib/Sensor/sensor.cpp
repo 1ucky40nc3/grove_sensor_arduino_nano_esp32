@@ -20,15 +20,27 @@ err_sensor_t convertHM330XErrorCode(HM330XErrorCode error)
     }
 }
 
-err_sensor_t HM330XSensorReader::init()
+err_sensor_t HM330XSensor::init()
 {
     const HM330XErrorCode error = this->sensor.init();
     return convertHM330XErrorCode(error);
 }
 
+err_sensor_t HM330XSensor::read_sensor_value(uint8_t *data)
+{
+    const HM330XErrorCode error = this->sensor.read_sensor_value(data, 29);
+    return convertHM330XErrorCode(error);
+}
+
+err_sensor_t HM330XSensorReader::init()
+{
+    const err_sensor_t error = this->sensor.init();
+    return error;
+}
+
 err_sensor_t HM330XSensorReader::read_measurement()
 {
-    if (this->sensor.read_sensor_value(this->buf, 29))
+    if (this->sensor.read_sensor_value(this->buf))
     {
         Serial.println("HM330X read result failed!!!");
         return ERR_READ;
