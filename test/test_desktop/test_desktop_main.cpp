@@ -93,6 +93,7 @@ int main()
     RUN_TEST(test_json_data_sender_controller);
     RUN_TEST(test_json_data_sender_adapter);
     RUN_TEST(test_sequenced_queue);
+    RUN_TEST(test_convert_hm330x_error_code);
 
     UNITY_END(); // End Unity
 
