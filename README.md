@@ -53,6 +53,8 @@ pio run -e arduino_nano_esp32 -t build
 pio run -e arduino_nano_esp32 -t upload
 ```
 
+As an alternative to the command you can also use the PlatformIO buttons in VSCode. You can find the buttons below. Make szre to select the correct (`arduino_nano_esp32`) environment for the upload.
+
 ### Run Tests
 
 ```bash
@@ -62,3 +64,9 @@ pio test -e desktop
 pio test -e arduino_nano_esp32
 ```
 
+
+## Troubleshooting
+
+### Reset the Arduino Nano ESP32
+
+Follow this [tutorial](https://support.arduino.cc/hc/en-us/articles/9810414060188-Reset-the-Arduino-bootloader-on-the-Nano-ESP32) to reset the bootloader of the Arduino Nano ESP32.
