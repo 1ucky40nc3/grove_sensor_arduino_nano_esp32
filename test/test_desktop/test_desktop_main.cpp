@@ -6,6 +6,7 @@ using namespace std;
 #include "utils.h"
 #include "ChecksumException.h"
 #include "BufferNullptfException.h"
+#include "config.h"
 
 void test_ChecksumException()
 {
@@ -50,8 +51,8 @@ void test_parseHm330xMeasurement_validData()
     TEST_ASSERT_TRUE(measurement.data.pm_025_spm == 38);
     TEST_ASSERT_TRUE(measurement.data.pm_100_spm == 41);
     TEST_ASSERT_TRUE(measurement.data.sensor_num == 0);
-    TEST_ASSERT_EQUAL_STRING(measurement.desc.sensor.c_str(), "HM330X");
-    TEST_ASSERT_EQUAL_STRING(measurement.desc.version.c_str(), "v1.0");
+    TEST_ASSERT_EQUAL_STRING(measurement.desc.sensor.c_str(), MEASUREMENT_SENSOR.c_str());
+    TEST_ASSERT_EQUAL_STRING(measurement.desc.version.c_str(), MEASUREMENT_VERSION.c_str());
 }
 
 void test_parseHm330xMeasurement_undefinedBuf()

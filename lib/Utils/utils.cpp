@@ -4,6 +4,7 @@
 #include "ChecksumException.h"
 #include "BufferNullptfException.h"
 #include "measurement.h"
+#include "config.h"
 
 using namespace std;
 
@@ -43,8 +44,8 @@ HM330XMeasurement parseHm330xMeasurement(uint8_t *buf) noexcept(false)
     data.pm_025_ae = parse(6, buf);
     data.pm_100_ae = parse(7, buf);
 
-    Description desc = {"HM330X", "v1.0"};
-    Measurement<HM330XData> measurement;
+    Description desc = {MEASUREMENT_SENSOR, MEASUREMENT_VERSION};
+    HM330XMeasurement measurement;
     measurement.data = data;
     measurement.desc = desc;
     return measurement;
