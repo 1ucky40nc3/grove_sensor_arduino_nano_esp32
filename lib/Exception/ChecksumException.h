@@ -11,7 +11,7 @@ using namespace std;
 class ChecksumException : public std::exception
 {
 public:
-    ChecksumException(const std::string &message) : message_(message) {}
+    ChecksumException(const std::string &message) : message_("ChecksumException: " + message) {}
     const char *what() const throw()
     {
         return message_.c_str();

@@ -16,7 +16,7 @@ void test_ChecksumException()
     }
     catch (const exception &ex)
     {
-        TEST_ASSERT_EQUAL_STRING("test", ex.what());
+        TEST_ASSERT_EQUAL_STRING("ChecksumException: test", ex.what());
     }
 }
 
@@ -28,7 +28,7 @@ void test_BufferNulptrException()
     }
     catch (const exception &ex)
     {
-        TEST_ASSERT_EQUAL_STRING("test", ex.what());
+        TEST_ASSERT_EQUAL_STRING("BufferNulptrException: test", ex.what());
     }
 }
 
@@ -64,7 +64,8 @@ void test_parseHm330xMeasurement_undefinedBuf()
     }
     catch (const exception &e)
     {
-        TEST_ASSERT_EQUAL_STRING("The buffer can't be a nullptr!", e.what());
+        const char *message = e.what();
+        TEST_ASSERT_EQUAL_STRING("BufferNulptrException: The buffer can't be a nullptr!", message);
     }
     catch (...)
     {
@@ -83,7 +84,7 @@ void test_parseHm330xMeasurement_invalidChecksum()
     }
     catch (const exception &e)
     {
-        TEST_ASSERT_EQUAL_STRING("The checksum of the HM330X sensor buffer is not valid!", e.what());
+        TEST_ASSERT_EQUAL_STRING("ChecksumException: The checksum of the HM330X sensor buffer is not valid!", e.what());
     }
     catch (...)
     {

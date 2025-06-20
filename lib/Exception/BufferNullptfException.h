@@ -12,7 +12,7 @@ using namespace std;
 class BufferNulptrException : public std::exception
 {
 public:
-    BufferNulptrException(const std::string &message) : message_(message) {}
+    BufferNulptrException(const std::string &message) : message_("BufferNulptrException: " + message) {}
     const char *what() const throw()
     {
         return message_.c_str();
