@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdint>
 #include <cassert>
-#include "serialize.h"
+#include <error.h>
 
 using namespace std;
 
@@ -31,12 +31,4 @@ struct Measurement
     T data;
 };
 
-class JsonSerializableHM330XMeasurement : public IJsonSerializable
-{
-private:
-    Measurement<HM330XData> measurement;
-
-public:
-    JsonSerializableHM330XMeasurement(Measurement<HM330XData> measurement) : measurement(measurement) {};
-    string toJson() override;
-};
+typedef Measurement<HM330XData> HM330XMeasurement;

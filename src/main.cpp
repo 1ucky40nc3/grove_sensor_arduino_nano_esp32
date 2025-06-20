@@ -1,6 +1,8 @@
 
 #include "Arduino.h"
 #include "Seeed_HM330X.h"
+#include <measurement.h>
+#include <utils.h>
 
 HM330X sensor;
 uint8_t buf[30];
@@ -14,6 +16,25 @@ const char *str[] = {
     "PM2.5 concentration(Atmospheric environment,unit:ug/m3): ",
     "PM10 concentration(Atmospheric environment,unit:ug/m3): ",
 };
+
+void print_buffer_hex(const uint8_t *buf, size_t len)
+{
+  if (!buf)
+  {
+    Serial.println("Buffer is null, cannot print.");
+    return;
+  }
+  Serial.printf("Buffer contents (%d bytes): [", len);
+  for (size_t i = 0; i < len; ++i)
+  {
+    Serial.printf("%d", buf[i]);
+    if (i < len - 1)
+    {
+      Serial.print(" ");
+    }
+  }
+  Serial.println("]"); // Reset to decimal for other outputs
+}
 
 err_t print_result(const char *str, uint16_t value)
 {
@@ -88,8 +109,9 @@ void loop()
   {
     Serial.println("HM330X read result failed!!!");
   }
-  parse_result_value(buf);
-  parse_result(buf);
+  HM330XMeasurement measurement = parseHm330xMeasurement(buf);
+  string json = convertHm330xMeasurementToJson(measurement);
+  Serial.println(json.c_str());
   Serial.println(" ");
   Serial.println(" ");
   Serial.println(" ");
