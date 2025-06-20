@@ -1,13 +1,35 @@
 #include <string>
+#include <cassert>
 #include "utils.h"
+#include "ChecksumException.h"
+#include "BufferNullptfException.h"
 #include "measurement.h"
 
 using namespace std;
 
-HM330XMeasurement parseHm330xMeasurement(uint8_t *buf)
+bool isValidHm330xBufferChecksum(uint8_t *buf)
 {
-    // if (NULL == buf)
-    //     return ERR_NULL;
+
+    uint8_t sum = 0;
+    for (int i = 0; i < 28; i++)
+    {
+        sum += buf[i];
+    }
+    return sum == buf[28];
+}
+
+HM330XMeasurement parseHm330xMeasurement(uint8_t *buf) noexcept(false)
+{
+    // The buffer can't be undefined here
+    if (buf == nullptr)
+    {
+        throw BufferNulptrException("The buffer can't be a nullptr!");
+    }
+    // Make sure we only process valid buffers below
+    if (!isValidHm330xBufferChecksum(buf))
+    {
+        throw ChecksumException("The checksum of the HM330X sensor buffer is not valid!");
+    }
 
     auto parse = [](int i, uint8_t *buf)
     { return (uint16_t)buf[i * 2] << 8 | buf[i * 2 + 1]; };

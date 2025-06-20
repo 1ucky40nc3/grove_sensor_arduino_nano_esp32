@@ -3,97 +3,18 @@
 #include "Seeed_HM330X.h"
 #include <measurement.h>
 #include <utils.h>
+#include <config.h>
 
 HM330X sensor;
 uint8_t buf[30];
 
-const char *str[] = {
-    "sensor num: ",
-    "PM1.0 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
-    "PM2.5 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
-    "PM10 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
-    "PM1.0 concentration(Atmospheric environment,unit:ug/m3): ",
-    "PM2.5 concentration(Atmospheric environment,unit:ug/m3): ",
-    "PM10 concentration(Atmospheric environment,unit:ug/m3): ",
-};
-
-void print_buffer_hex(const uint8_t *buf, size_t len)
-{
-  if (!buf)
-  {
-    Serial.println("Buffer is null, cannot print.");
-    return;
-  }
-  Serial.printf("Buffer contents (%d bytes): [", len);
-  for (size_t i = 0; i < len; ++i)
-  {
-    Serial.printf("%d", buf[i]);
-    if (i < len - 1)
-    {
-      Serial.print(" ");
-    }
-  }
-  Serial.println("]"); // Reset to decimal for other outputs
-}
-
-err_t print_result(const char *str, uint16_t value)
-{
-  if (NULL == str)
-    return ERROR_PARAM;
-  Serial.print(str);
-  Serial.println(value);
-  return NO_ERROR;
-}
-
-/*parse buf with 29 u8-data*/
-err_t parse_result(uint8_t *data)
-{
-  uint16_t value = 0;
-  err_t NO_ERROR;
-  if (NULL == data)
-    return ERROR_PARAM;
-  for (int i = 1; i < 8; i++)
-  {
-    value = (uint16_t)data[i * 2] << 8 | data[i * 2 + 1];
-    print_result(str[i - 1], value);
-  }
-}
-
-err_t parse_result_value(uint8_t *data)
-{
-  if (NULL == data)
-    return ERROR_PARAM;
-  for (int i = 0; i < 28; i++)
-  {
-    Serial.print(data[i], HEX);
-    Serial.print("  ");
-    if ((0 == (i) % 5) || (0 == i))
-    {
-      Serial.println(" ");
-    }
-  }
-  uint8_t sum = 0;
-  for (int i = 0; i < 28; i++)
-  {
-    sum += data[i];
-  }
-  if (sum != data[28])
-  {
-    Serial.println("wrong checkSum!!!!");
-  }
-  Serial.println(" ");
-  Serial.println(" ");
-  return NO_ERROR;
-}
-
-/*30s*/
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(SERIAL_BAUD);
   // wait for Serial to come online
   while (!Serial)
     ;
-  delay(100);
+  delay(DELAY_AFTER_SERIAL_INITIALIZED);
   Serial.println("Serial start");
   if (sensor.init())
   {
@@ -109,11 +30,19 @@ void loop()
   {
     Serial.println("HM330X read result failed!!!");
   }
-  HM330XMeasurement measurement = parseHm330xMeasurement(buf);
-  string json = convertHm330xMeasurementToJson(measurement);
-  Serial.println(json.c_str());
-  Serial.println(" ");
-  Serial.println(" ");
-  Serial.println(" ");
-  delay(5000);
+  else
+  {
+    try
+    {
+      HM330XMeasurement measurement = parseHm330xMeasurement(buf);
+      string json = convertHm330xMeasurementToJson(measurement);
+      Serial.println(json.c_str());
+    }
+    catch (const exception &ex)
+    {
+      Serial.println(ex.what());
+    }
+  }
+
+  delay(DELAY_AFTER_LOOP_ITERATION);
 }
