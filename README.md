@@ -64,6 +64,10 @@ pio test -e desktop
 pio test -e arduino_nano_esp32
 ```
 
+#### Debug Tests
+
+If you are using VSCode (which is recommended), select the testing module [test_desktop_main.cpp](test/test_desktop/test_desktop_main.cpp) and go to the debug tab in VSCode. Launch the code with the `PIO Debug` configuration. This will automatically attach a gdb debugger and enable VSCode debugging.
+
 
 ## Troubleshooting
 
