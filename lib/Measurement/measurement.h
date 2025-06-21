@@ -23,13 +23,13 @@ using namespace std;
  */
 struct HM330XData
 {
-    uint8_t sensor_num;
-    uint8_t pm_010_spm;
-    uint8_t pm_025_spm;
-    uint8_t pm_100_spm;
-    uint8_t pm_010_ae;
-    uint8_t pm_025_ae;
-    uint8_t pm_100_ae;
+    uint16_t sensor_num;
+    uint16_t pm_010_spm;
+    uint16_t pm_025_spm;
+    uint16_t pm_100_spm;
+    uint16_t pm_010_ae;
+    uint16_t pm_025_ae;
+    uint16_t pm_100_ae;
 };
 
 /**

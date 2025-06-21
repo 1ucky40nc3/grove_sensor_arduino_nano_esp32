@@ -32,7 +32,8 @@ HM330XMeasurement parseHm330xMeasurement(uint8_t *buf) noexcept(false)
         throw ChecksumException("The checksum of the HM330X sensor buffer is not valid!");
     }
 
-    auto parse = [](int i, uint8_t *buf)
+    // Parse two `uint8_t` values in the buffer into a single `uint16_t`
+    auto parse = [](int i, uint8_t *buf) -> uint16_t
     { return (uint16_t)buf[i * 2] << 8 | buf[i * 2 + 1]; };
 
     HM330XData data;
