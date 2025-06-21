@@ -76,6 +76,11 @@ If you are using VSCode (which is recommended), use the following steps to debug
 
 This will automatically attach a gdb debugger and enable VSCode debugging.
 
+## Documentation
+
+### Configuration
+
+Set the configuration in the [config.h](lib/Config/config.h) header file. Use the provided constants as they are used in the code.
 
 ## Troubleshooting
 
