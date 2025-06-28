@@ -63,3 +63,17 @@ string convertHm330xMeasurementToJson(HM330XMeasurement &measurement)
                               ",\"pm_100_ae\":" + to_string(measurement.data.pm_100_ae) + "}";
     return "{\"desc\":" + descString + ",\"data\":" + dataString + "}";
 }
+
+string convertHm330xMeasurementToMetrics(HM330XMeasurement &measurement)
+{
+    const string sensor = measurement.desc.sensor;
+    const string version = measurement.desc.version;
+    const string labels = "{sensor=\"" + sensor + "\",version=\"" + version + "\"}";
+    const string metrics = "pm_010_spm" + labels + " " + to_string(measurement.data.pm_010_spm) +
+                           "\npm_025_spm" + labels + " " + to_string(measurement.data.pm_025_spm) +
+                           "\npm_100_spm" + labels + " " + to_string(measurement.data.pm_100_spm) +
+                           "\npm_010_ae" + labels + " " + to_string(measurement.data.pm_010_ae) +
+                           "\npm_025_ae" + labels + " " + to_string(measurement.data.pm_025_ae) +
+                           "\npm_100_ae" + labels + " " + to_string(measurement.data.pm_100_ae);
+    return metrics;
+}

@@ -41,3 +41,16 @@ HM330XMeasurement parseHm330xMeasurement(uint8_t *buf);
  * @return A std::string containing the JSON representation of the measurement data.
  */
 string convertHm330xMeasurementToJson(HM330XMeasurement &measurement);
+
+/**
+ * @brief Converts an HM330XMeasurement struct into metrics we can push to a Prometheus Pushgatway.
+ *
+ * This function serializes the data contained within an `HM330XMeasurement`
+ * struct into a metrics we can push to a Prometheus Pushgatway string.
+ * Each field of `HM330XData` sub-structure will be parsed as a metric.
+ * The `Description` will be parsed as labels for each metric we push.
+ *
+ * @param measurement A reference to an `HM330XMeasurement` struct to be converted.
+ * @return A std::string containing the Prometheus Pushgateway metrics representation of the measurement data.
+ */
+string convertHm330xMeasurementToMetrics(HM330XMeasurement &measurement);
