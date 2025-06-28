@@ -94,25 +94,6 @@ void test_parseHm330xMeasurement_invalidChecksum()
     }
 }
 
-void test_convertHm330xMeasurementToJson()
-{
-    HM330XData data;
-    data.pm_010_spm = 0;
-    data.pm_025_spm = 0;
-    data.pm_100_spm = 0;
-    data.pm_010_ae = 0;
-    data.pm_025_ae = 0;
-    data.pm_100_ae = 0;
-    Description desc = {"HM330X", "v1.0"};
-    HM330XMeasurement measurement;
-    measurement.data = data;
-    measurement.desc = desc;
-
-    const char *expected = "{\"desc\":{\"sensor\":\"HM330X\",\"version\":\"v1.0\"},\"data\":{\"pm_010_spm\":0,\"pm_025_spm\":0,\"pm_100_spm\":0,\"pm_010_ae\":0,\"pm_025_ae\":0,\"pm_100_ae\":0}}";
-    string result = convertHm330xMeasurementToJson(measurement);
-    TEST_ASSERT_EQUAL_STRING(expected, result.c_str());
-}
-
 void test_convertHm330xMeasurementToMetrics()
 {
     HM330XData data;
@@ -127,7 +108,7 @@ void test_convertHm330xMeasurementToMetrics()
     measurement.data = data;
     measurement.desc = desc;
 
-    const char *expected = "pm_010_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_025_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_100_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_010_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_025_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_100_ae{sensor=\"HM330X\",version=\"v1.0\"} 0";
+    const char *expected = "pm_010_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_025_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_100_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_010_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_025_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_100_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\n";
     string result = convertHm330xMeasurementToMetrics(measurement);
     TEST_ASSERT_EQUAL_STRING(expected, result.c_str());
 }
@@ -147,7 +128,6 @@ int main()
     RUN_TEST(test_parseHm330xMeasurement_validData);
     RUN_TEST(test_parseHm330xMeasurement_undefinedBuf);
     RUN_TEST(test_parseHm330xMeasurement_invalidChecksum);
-    RUN_TEST(test_convertHm330xMeasurementToJson);
     RUN_TEST(test_convertHm330xMeasurementToMetrics);
 
     UNITY_END(); // End Unity

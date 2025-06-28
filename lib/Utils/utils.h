@@ -31,18 +31,6 @@ bool isValidHm330xBufferChecksum(uint8_t *buf);
 HM330XMeasurement parseHm330xMeasurement(uint8_t *buf);
 
 /**
- * @brief Converts an HM330XMeasurement struct into a JSON string.
- *
- * This function serializes the data contained within an `HM330XMeasurement`
- * struct into a JSON formatted string. The JSON string will include all fields
- * from the `Description` and `HM330XData` sub-structures.
- *
- * @param measurement A reference to an `HM330XMeasurement` struct to be converted.
- * @return A std::string containing the JSON representation of the measurement data.
- */
-string convertHm330xMeasurementToJson(HM330XMeasurement &measurement);
-
-/**
  * @brief Converts an HM330XMeasurement struct into metrics we can push to a Prometheus Pushgatway.
  *
  * This function serializes the data contained within an `HM330XMeasurement`
