@@ -15,9 +15,9 @@ void setup()
 {
   // Initialize the serial connection
   Serial.begin(SERIAL_BAUD);
-  // wait for Serial to come online
-  while (!Serial)
-    ;
+  // // wait for Serial to come online (only for testing/development purposes)
+  // while (!Serial)
+  //   ;
   delay(DELAY_AFTER_SERIAL_INITIALIZED);
   Serial.println("Serial start");
 
