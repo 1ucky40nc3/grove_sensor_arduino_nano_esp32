@@ -22,6 +22,10 @@ Note: The command-line has to be a PlatformIO terminal. You can create a new Pla
 
 Run the `pio check` command to do a static code analysis to check if everything is setup correctly.
 
+### Set up Configuration and Secrets
+
+You can find sections below on how to handle [configuration](#configuration) and [secrets](#secrets) down below. Make to follow the instructions and you should be good to go.
+
 ### Connect the Hardware
 
 For the project you need to have a:
@@ -81,6 +85,40 @@ This will automatically attach a gdb debugger and enable VSCode debugging.
 ### Configuration
 
 Set the configuration in the [config.h](lib/Config/config.h) header file. Use the provided constants as they are used in the code.
+
+### Secrets
+
+Provide the secrets in the [secrets.h](lib/Config/secrets.h) header file. This file provides constants which are used in the code. As part of the setup you have to create the [secrets.h](lib/Config/secrets.h) file at the `lib/Config/secrets.h` path. Use the following template to create the file
+
+```cpp
+/**
+ * @brief The WIFI SSID for a Wifi client.
+ *
+ * This Wifi SSID is used together with the `WIFI_PASSWORD` to connect to a Wifi network.
+ */
+const char *WIFI_SSID = "INSERT_YOUR_WIFI_SSID_HERE";
+
+/**
+ * @brief The Wifi password a Wifi client.
+ *
+ * This Wifi üassword is used together with the `WIFI_SSID` to connect to a Wifi network.
+ */
+const char *WIFI_PASSWORD = "INSERT_YOUR_WIFI_PASSWORD_HERE";
+
+/**
+ * @brief The hostname of a Prometheus Pushgateway server.
+ *
+ * We send our metrics data to this Prometheus Pushgateway server.
+ */
+const char *PUSHGATEWAY_HOST = "INSERT_YOUR_PUSHGATEWAY_HOST_HERE"; // Or the IP address of your Pushgateway
+
+/**
+ * @brief The PORT of a Prometheus Pushgateway server.
+ *
+ * We send our metrics data to this Prometheus Pushgateway server.
+ */
+const int PUSHGATEWAY_PORT = 30003;
+```
 
 ## Troubleshooting
 

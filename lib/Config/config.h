@@ -36,3 +36,10 @@ const string MEASUREMENT_SENSOR = "HM330X";
  * This constant is used to output metadata about the the version/setup used to do the particulate measurements.
  */
 const string MEASUREMENT_VERSION = "v1.0";
+
+/**
+ * @brief A metrics path of a Prometheus Pushgateway.
+ *
+ * This path selects the metrics/job path where we push metrics to the Prometheus Pushgateway.
+ */
+const string PUSHGATEWAY_METRICS_PATH = "/metrics/job/airquality";
