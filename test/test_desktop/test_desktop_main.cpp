@@ -1,14 +1,100 @@
 using namespace std;
+#include <iostream>
 #include <unity.h>
-#include "measure.h"
-#include "service.h"
-#include "controller.h"
-#include "adapter.h"
-#include "customQueue.h"
-#include "sensor.h"
-#include "sensor.cpp"
+#include <memory>
+#include "measurement.h"
+#include "utils.h"
+#include "ChecksumException.h"
+#include "BufferNullptfException.h"
+#include "config.h"
 
-void test_hm330x_serializable_measurement()
+void test_ChecksumException()
+{
+    try
+    {
+        throw ChecksumException("test");
+    }
+    catch (const exception &ex)
+    {
+        TEST_ASSERT_EQUAL_STRING("ChecksumException: test", ex.what());
+    }
+}
+
+void test_BufferNulptrException()
+{
+    try
+    {
+        throw BufferNulptrException("test");
+    }
+    catch (const exception &ex)
+    {
+        TEST_ASSERT_EQUAL_STRING("BufferNulptrException: test", ex.what());
+    }
+}
+
+void test_isValidHm330xBufferChecksum()
+{
+    uint8_t validData[30] = {0, 255, 0, 0, 0, 30, 0, 38, 0, 41, 0, 24, 0, 35, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 208, 0};
+    TEST_ASSERT_TRUE(isValidHm330xBufferChecksum(validData));
+    uint8_t invalidData[30] = {0, 255, 0, 0, 0, 31, 0, 38, 0, 41, 0, 24, 0, 35, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 208, 0};
+    TEST_ASSERT_FALSE(isValidHm330xBufferChecksum(invalidData));
+}
+
+void test_parseHm330xMeasurement_validData()
+{
+    uint8_t data[30] = {0, 255, 0, 0, 0, 30, 0, 38, 0, 41, 0, 24, 0, 35, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 208, 0};
+    const HM330XMeasurement measurement = parseHm330xMeasurement(data);
+    TEST_ASSERT_TRUE(measurement.data.pm_010_ae == 24);
+    TEST_ASSERT_TRUE(measurement.data.pm_025_ae == 35);
+    TEST_ASSERT_TRUE(measurement.data.pm_100_ae == 41);
+    TEST_ASSERT_TRUE(measurement.data.pm_010_spm == 30);
+    TEST_ASSERT_TRUE(measurement.data.pm_025_spm == 38);
+    TEST_ASSERT_TRUE(measurement.data.pm_100_spm == 41);
+    TEST_ASSERT_TRUE(measurement.data.sensor_num == 0);
+    TEST_ASSERT_EQUAL_STRING(measurement.desc.sensor.c_str(), MEASUREMENT_SENSOR.c_str());
+    TEST_ASSERT_EQUAL_STRING(measurement.desc.version.c_str(), MEASUREMENT_VERSION.c_str());
+}
+
+void test_parseHm330xMeasurement_undefinedBuf()
+{
+
+    try
+    {
+        parseHm330xMeasurement(NULL);
+    }
+    catch (const exception &e)
+    {
+        const char *message = e.what();
+        TEST_ASSERT_EQUAL_STRING("BufferNulptrException: The buffer can't be a nullptr!", message);
+    }
+    catch (...)
+    {
+        // If we don't catch the assertion error we consider this test as failed
+        TEST_ASSERT_TRUE(false);
+    }
+}
+
+void test_parseHm330xMeasurement_invalidChecksum()
+{
+    uint8_t invalidData[30] = {0, 255, 0, 0, 0, 31, 0, 38, 0, 41, 0, 24, 0, 35, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 208, 0};
+
+    try
+    {
+        parseHm330xMeasurement(invalidData);
+    }
+    catch (const exception &e)
+    {
+        TEST_ASSERT_EQUAL_STRING("ChecksumException: The checksum of the HM330X sensor buffer is not valid!", e.what());
+    }
+    catch (...)
+    {
+        exception_ptr ex = current_exception();
+        // If we don't catch the assertion error we consider this test as failed
+        TEST_ASSERT_TRUE(false);
+    }
+}
+
+void test_convertHm330xMeasurementToMetrics()
 {
     HM330XData data;
     data.pm_010_spm = 0;
@@ -18,102 +104,13 @@ void test_hm330x_serializable_measurement()
     data.pm_025_ae = 0;
     data.pm_100_ae = 0;
     Description desc = {"HM330X", "v1.0"};
-    Measurement<HM330XData> measurement = {desc, data};
-    JsonSerializableHM330XMeasurement serializable(measurement);
-    const char *expected = "{\"desc\":{\"sensor\":\"HM330X\",\"version\":\"v1.0\"},\"data\":{\"pm_010_spm\":0,\"pm_025_spm\":0,\"pm_100_spm\":0,\"pm_010_ae\":0,\"pm_025_ae\":0,\"pm_100_ae\":0}}";
-    TEST_ASSERT_EQUAL_STRING(expected, serializable.toJson().c_str());
-}
-
-void test_json_data_sender_service()
-{
-    JsonDataSenderService service;
-    service.send("test");
-}
-
-void test_json_data_sender_controller()
-{
-    JsonDataSenderService service;
-    JsonDataSenderController controller(service);
-
-    controller.send("test");
-}
-
-void test_json_data_sender_adapter()
-{
-    JsonDataSenderService service;
-    JsonDataSenderController controller(service);
-    JsonSerializableDataSenderAdapter adapter(controller);
-
-    HM330XData data;
-    data.pm_010_spm = 0;
-    data.pm_025_spm = 0;
-    data.pm_100_spm = 0;
-    data.pm_010_ae = 0;
-    data.pm_025_ae = 0;
-    data.pm_100_ae = 0;
-    Description desc;
-    desc.sensor = "sensor";
-    desc.version = "version";
-    Measurement<HM330XData> measurement;
+    HM330XMeasurement measurement;
     measurement.data = data;
     measurement.desc = desc;
-    JsonSerializableHM330XMeasurement serializable(measurement);
-    adapter.send(serializable);
-}
 
-void test_sequenced_queue()
-{
-    SequencedQueue<string> sequencedQueue;
-    TEST_ASSERT_TRUE(sequencedQueue.isEmpty());
-    sequencedQueue.add("item");
-    TEST_ASSERT_FALSE(sequencedQueue.isEmpty());
-    const string item = sequencedQueue.pop();
-    TEST_ASSERT_TRUE(sequencedQueue.isEmpty());
-    TEST_ASSERT_EQUAL_STRING("item", item.c_str());
-}
-
-void test_convert_hm330x_error_code()
-{
-    TEST_ASSERT_TRUE(convertHM330XErrorCode(NO_ERROR) == NO_ERR);
-    TEST_ASSERT_TRUE(convertHM330XErrorCode(ERROR_COMM) == ERR_CONN);
-    TEST_ASSERT_TRUE(convertHM330XErrorCode(ERROR_OTHERS) == ERR_OTHER);
-}
-
-class HM330XSensorTest : public HM330XSensor
-{
-public:
-    err_sensor_t read_sensor_value(uint8_t *data)
-    {
-        // We expect the buffer to have a length of 30
-        // as in the private HM330XSensorReader buf property
-        for (int i = 0; i < 30; ++i)
-        {
-            data[i] = i;
-        }
-        return NO_ERR;
-    }
-};
-
-void test_hm330x_sensor_reader_read_parse_get()
-{
-
-    HM330XSensorTest sensor;
-    HM330XSensorReader reader(sensor);
-    const err_sensor_t readError = reader.read_measurement();
-    TEST_ASSERT_TRUE(readError == NO_ERR);
-    const err_sensor_t parseError = reader.parse_measurement();
-    TEST_ASSERT_TRUE(parseError == NO_ERR);
-    const Measurement<HM330XData> data = reader.get_measurement();
-    const Measurement<HM330XData> expect = {{"HM330X", "v1"},
-                                            {0, 1, 2, 3, 4, 5, 6}};
-    TEST_ASSERT_TRUE(expect.desc.sensor == data.desc.sensor);
-    TEST_ASSERT_TRUE(expect.desc.version == data.desc.version);
-    TEST_ASSERT_TRUE(expect.data.pm_010_spm == data.data.pm_010_spm);
-    TEST_ASSERT_TRUE(expect.data.pm_025_spm == data.data.pm_025_spm);
-    TEST_ASSERT_TRUE(expect.data.pm_100_spm == data.data.pm_100_spm);
-    TEST_ASSERT_TRUE(expect.data.pm_010_ae == data.data.pm_010_ae);
-    TEST_ASSERT_TRUE(expect.data.pm_025_ae == data.data.pm_025_ae);
-    TEST_ASSERT_TRUE(expect.data.pm_100_ae == data.data.pm_100_ae);
+    const char *expected = "pm_010_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_025_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_100_spm{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_010_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_025_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\npm_100_ae{sensor=\"HM330X\",version=\"v1.0\"} 0\n";
+    string result = convertHm330xMeasurementToMetrics(measurement);
+    TEST_ASSERT_EQUAL_STRING(expected, result.c_str());
 }
 
 void setUp() {}
@@ -125,13 +122,13 @@ int main()
     UNITY_BEGIN(); // Initialize Unity
 
     // Run the tests
-    RUN_TEST(test_hm330x_serializable_measurement);
-    RUN_TEST(test_json_data_sender_service);
-    RUN_TEST(test_json_data_sender_controller);
-    RUN_TEST(test_json_data_sender_adapter);
-    RUN_TEST(test_sequenced_queue);
-    RUN_TEST(test_convert_hm330x_error_code);
-    RUN_TEST(test_hm330x_sensor_reader_read_parse_get);
+    RUN_TEST(test_ChecksumException);
+    RUN_TEST(test_BufferNulptrException);
+    RUN_TEST(test_isValidHm330xBufferChecksum);
+    RUN_TEST(test_parseHm330xMeasurement_validData);
+    RUN_TEST(test_parseHm330xMeasurement_undefinedBuf);
+    RUN_TEST(test_parseHm330xMeasurement_invalidChecksum);
+    RUN_TEST(test_convertHm330xMeasurementToMetrics);
 
     UNITY_END(); // End Unity
 

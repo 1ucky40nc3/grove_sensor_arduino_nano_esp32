@@ -33,3 +33,6 @@
 
 # PlatformIO build artifacts
 .pio/*
+
+# Hide secrets
+lib/Config/secrets.h

@@ -1,85 +1,110 @@
 
 #include "Arduino.h"
 #include "Seeed_HM330X.h"
+#include "WiFi.h" // For ESP32. If using ESP8266, use <ESP8266WiFi.h>
+#include "WiFiClient.h"
+#include <measurement.h>
+#include <utils.h>
+#include <config.h>
+#include <secrets.h>
 
 HM330X sensor;
 uint8_t buf[30];
 
-const char *str[] = {
-    "sensor num: ",
-    "PM1.0 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
-    "PM2.5 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
-    "PM10 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
-    "PM1.0 concentration(Atmospheric environment,unit:ug/m3): ",
-    "PM2.5 concentration(Atmospheric environment,unit:ug/m3): ",
-    "PM10 concentration(Atmospheric environment,unit:ug/m3): ",
-};
-
-err_t print_result(const char *str, uint16_t value)
-{
-  if (NULL == str)
-    return ERROR_PARAM;
-  Serial.print(str);
-  Serial.println(value);
-  return NO_ERROR;
-}
-
-/*parse buf with 29 u8-data*/
-err_t parse_result(uint8_t *data)
-{
-  uint16_t value = 0;
-  err_t NO_ERROR;
-  if (NULL == data)
-    return ERROR_PARAM;
-  for (int i = 1; i < 8; i++)
-  {
-    value = (uint16_t)data[i * 2] << 8 | data[i * 2 + 1];
-    print_result(str[i - 1], value);
-  }
-}
-
-err_t parse_result_value(uint8_t *data)
-{
-  if (NULL == data)
-    return ERROR_PARAM;
-  for (int i = 0; i < 28; i++)
-  {
-    Serial.print(data[i], HEX);
-    Serial.print("  ");
-    if ((0 == (i) % 5) || (0 == i))
-    {
-      Serial.println(" ");
-    }
-  }
-  uint8_t sum = 0;
-  for (int i = 0; i < 28; i++)
-  {
-    sum += data[i];
-  }
-  if (sum != data[28])
-  {
-    Serial.println("wrong checkSum!!!!");
-  }
-  Serial.println(" ");
-  Serial.println(" ");
-  return NO_ERROR;
-}
-
-/*30s*/
 void setup()
 {
-  Serial.begin(115200);
-  // wait for Serial to come online
-  while (!Serial)
-    ;
-  delay(100);
+  // Initialize the serial connection
+  Serial.begin(SERIAL_BAUD);
+  // // wait for Serial to come online (only for testing/development purposes)
+  // while (!Serial)
+  //   ;
+  delay(DELAY_AFTER_SERIAL_INITIALIZED);
   Serial.println("Serial start");
+
+  // Intialize the sensor communication
   if (sensor.init())
   {
     Serial.println("HM330X init failed!!!");
     while (1)
       ;
   }
+
+  // Initialize the Wifi connection
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void sendMetricsToPushgateway(String metricData)
+{
+  WiFiClient client;
+
+  Serial.print("\nConnecting to Pushgateway...");
+
+  if (!client.connect(PUSHGATEWAY_HOST, PUSHGATEWAY_PORT))
+  {
+    Serial.println("Connection failed!");
+    return;
+  }
+
+  Serial.println("Connected to Pushgateway!");
+
+  String metricsPath = String(PUSHGATEWAY_METRICS_PATH.c_str());
+  String pushgatewayHost = String(PUSHGATEWAY_HOST);
+
+  // Construct the HTTP POST request
+  String httpRequest = "POST ";
+  httpRequest += metricsPath;
+  httpRequest += " HTTP/1.1\r\n";
+  httpRequest += "Host: ";
+  httpRequest += pushgatewayHost;
+  httpRequest += "\r\n";
+  httpRequest += "Content-Type: text/plain\r\n"; // Important for Prometheus metrics
+  httpRequest += "Content-Length: ";
+  httpRequest += metricData.length();
+  httpRequest += "\r\n";
+  httpRequest += "\r\n"; // Empty line to separate headers from body
+  httpRequest += metricData;
+
+  Serial.println("Sending HTTP POST request:");
+  Serial.println(httpRequest);
+
+  client.print(httpRequest);
+
+  // Read the response from the server
+  Serial.println("Waiting for response...");
+  unsigned long timeout = millis();
+  while (client.available() == 0)
+  {
+    if (millis() - timeout > 5000)
+    { // 5 second timeout
+      Serial.println(">>> Client Timeout !");
+      client.stop();
+      return;
+    }
+  }
+
+  while (client.available())
+  {
+    String line = client.readStringUntil('\r');
+    Serial.print(line);
+  }
+  Serial.println("\n");
+
+  Serial.println("Closing connection.");
+  client.stop();
 }
 
 void loop()
@@ -88,10 +113,23 @@ void loop()
   {
     Serial.println("HM330X read result failed!!!");
   }
-  parse_result_value(buf);
-  parse_result(buf);
-  Serial.println(" ");
-  Serial.println(" ");
-  Serial.println(" ");
-  delay(5000);
+  else
+  {
+    try
+    {
+      HM330XMeasurement measurement = parseHm330xMeasurement(buf);
+      string metrics = convertHm330xMeasurementToMetrics(measurement);
+
+      string serialString = metrics + "\n\n";
+      Serial.println(serialString.c_str());
+      String pushgatewayString = String(metrics.c_str());
+      sendMetricsToPushgateway(pushgatewayString);
+    }
+    catch (const exception &ex)
+    {
+      Serial.println(ex.what());
+    }
+  }
+
+  delay(DELAY_AFTER_LOOP_ITERATION);
 }

@@ -22,6 +22,10 @@ Note: The command-line has to be a PlatformIO terminal. You can create a new Pla
 
 Run the `pio check` command to do a static code analysis to check if everything is setup correctly.
 
+### Set up Configuration and Secrets
+
+You can find sections below on how to handle [configuration](#configuration) and [secrets](#secrets) down below. Make to follow the instructions and you should be good to go.
+
 ### Connect the Hardware
 
 For the project you need to have a:
@@ -53,6 +57,8 @@ pio run -e arduino_nano_esp32 -t build
 pio run -e arduino_nano_esp32 -t upload
 ```
 
+As an alternative to the command you can also use the PlatformIO buttons in VSCode. You can find the buttons below. Make szre to select the correct (`arduino_nano_esp32`) environment for the upload.
+
 ### Run Tests
 
 ```bash
@@ -62,113 +68,60 @@ pio test -e desktop
 pio test -e arduino_nano_esp32
 ```
 
+#### Debug Tests
+
+If you are using VSCode (which is recommended), use the following steps to debug your test runs:
+
+1. Select the `desktop` environment to select your local machine as the build target
+2. Open the testing module [test_desktop_main.cpp](test/test_desktop/test_desktop_main.cpp) in your editor
+3. Go to the debug tab in VSCode
+4. Launch the code with the `PIO Debug` configuration
+
+
+This will automatically attach a gdb debugger and enable VSCode debugging.
+
 ## Documentation
 
-### Software Architecture
+### Configuration
 
-Software architecture patterns and principles:
+Set the configuration in the [config.h](lib/Config/config.h) header file. Use the provided constants as they are used in the code.
 
-- SOLID principles
-- interface pattern
-- MVC pattern
-- Composition over inheritence
+### Secrets
 
-```mermaid
-classDiagram
-    class IJsonSerializable {
-        <<interface>>
-        + toJson(): string
-    }
-    class HM330XData {
-        + pm_010_spm: int
-        + pm_025_spm: int
-        + pm_100_spm: int
-        + pm_010_ae: int
-        + pm_025_ae: int
-        + pm_100_ae: int
-    }
-    class AbstractMeasurement~T~{
-        + sensor: string
-        + version: string
-        + data: ~T~
-        + toJson(): string
-    }
-    class HM330XMeasurement~HM330XData~{
-        + sensor: string
-        + version: string
-        + data: ~HM330XData~
-        + toJson(): string
-    }
-    class IQueue~T~ {
-        + add(T): void
-        + pop(): T
-    }
-    class SequentialQueue~T~ {
-        + values: T[]
-        + add(T): void
-        + pop(): T
-    }
-    class ISensorReader~T~ {
-        <<interface>>
-        + sensor: string
-        + version: string
-        + read(): Measurement~T~
-    }
-    class HM3301V1SensorReader~HM330XData~ {
-        + sensor: string
-        + version: string
-        + read(): Measurement~HM330XData~
-    }
-    class IJsonDataSender {
-        + send(data: string): void
-    }
-    class JsonDataSenderService {
-        + send(data: string): void
-    }
-    class JsonDataSenderController {
-        + send(data: string): void
-    }
-    class JsonDataSenderAdapter {
-        + send(send: IJsonSerializable): void
-    }
-    AbstractMeasurement --|> IJsonSerializable
-    HM330XMeasurement --|> AbstractMeasurement
-    SequentialQueue --|> IQueue
-    HM3301V1SensorReader --|> SensorReader
-    JsonDataSenderService --|> IJsonDataSender
-    JsonDataSenderController ..> JsonDataSenderService : uses
-    JsonDataSenderAdapter ..> JsonDataSenderController
+Provide the secrets in the [secrets.h](lib/Config/secrets.h) header file. This file provides constants which are used in the code. As part of the setup you have to create the [secrets.h](lib/Config/secrets.h) file at the `lib/Config/secrets.h` path. Use the following template to create the file
+
+```cpp
+/**
+ * @brief The WIFI SSID for a Wifi client.
+ *
+ * This Wifi SSID is used together with the `WIFI_PASSWORD` to connect to a Wifi network.
+ */
+const char *WIFI_SSID = "INSERT_YOUR_WIFI_SSID_HERE";
+
+/**
+ * @brief The Wifi password a Wifi client.
+ *
+ * This Wifi üassword is used together with the `WIFI_SSID` to connect to a Wifi network.
+ */
+const char *WIFI_PASSWORD = "INSERT_YOUR_WIFI_PASSWORD_HERE";
+
+/**
+ * @brief The hostname of a Prometheus Pushgateway server.
+ *
+ * We send our metrics data to this Prometheus Pushgateway server.
+ */
+const char *PUSHGATEWAY_HOST = "INSERT_YOUR_PUSHGATEWAY_HOST_HERE"; // Or the IP address of your Pushgateway
+
+/**
+ * @brief The PORT of a Prometheus Pushgateway server.
+ *
+ * We send our metrics data to this Prometheus Pushgateway server.
+ */
+const int PUSHGATEWAY_PORT = 30003;
 ```
 
-The Arduino sketch initializes a system for reading data from an HM3301 Grove - Laser PM 2.5 sensor, queuing these measurements, and sending them as JSON strings to a web service.
+## Troubleshooting
 
-```mermaid
-sequenceDiagram
-    participant Arduino as Arduino Board
-    participant SensorReader as HM3301V1SensorReader
-    participant Queue as SequentialQueue<Measurement<HM330XData>>
-    participant Adapter as JsonDataSenderAdapter
-    participant Controller as JsonDataSenderController
-    participant Service as JsonDataSenderService
-    participant WebService as Web Service
+### Reset the Arduino Nano ESP32
 
-    Note over Arduino: setup()
-
-    Arduino ->> SensorReader: Initialize
-    Arduino ->> Queue: Initialize
-    Arduino ->> Adapter: Initialize
-    Arduino ->> Controller: Initialize (with Service)
-    Arduino ->> Service: Initialize
-
-    Note over Arduino: loop()
-
-    Arduino ->> SensorReader: read()
-    SensorReader -->> Arduino: Measurement<HM330XData>
-    Arduino ->> Queue: add(Measurement<HM330XData>)
-    Arduino ->> Queue: pop()
-    Queue -->> Arduino: Measurement<HM330XData>
-    Arduino ->> Adapter: send(Measurement<HM330XData>)
-    Adapter ->> Controller: send(JSON string)
-    Controller ->> Service: send(JSON String)
-    Service ->> WebService: Send JSON Data
-```
+Follow this [tutorial](https://support.arduino.cc/hc/en-us/articles/9810414060188-Reset-the-Arduino-bootloader-on-the-Nano-ESP32) to reset the bootloader of the Arduino Nano ESP32.
